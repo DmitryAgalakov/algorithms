@@ -96,7 +96,7 @@ function lastDigitOfFid2(n) {
 // ********************************************************************
 // Найти остаток от деления на m для n-ого числа фибоначчи.
 function getFibMod(n, m) {
-  const periodLength = findPeriodLength(n, m);
+  const periodLength = getPisanoPeriod(m);
   // Находим длину незаконченного периода.
   const incompletePeriod = n % periodLength;
   // Теперь нужно найти число фибоначчи, порядковый номер которого равен incompletePeriod.
@@ -111,8 +111,8 @@ function getFibMod(n, m) {
   }
   return result;
 }
-// Находим Пизано период с которым повторяется остаток от деления на m.
-function findPeriodLength(n, mod) {
+// Находим период Пизано с которым повторяется остаток от деления на m.
+function getPisanoPeriod(mod) {
   let current = 0;
   let next = 1;
   let period = 0;
@@ -149,3 +149,72 @@ function multiply2x2Matrices(a, b, m) {
   ];
 }
 // ********************************************************************
+
+// ************************** START ***************************
+// Модуль m n-ого числа фибоначчи при помощи возведения матрицы в степень.
+function fib(n, m) {
+  const matrix = [
+    [1, 1],
+    [1, 0],
+  ];
+  return fastMatrixExponentiation(matrix, n, m)[0][1];
+}
+function fastMatrixExponentiation(D, n, m) {
+  if (n === 0) {
+    // Возвращаем 2x2 единичную матрицу
+    return [
+      [1, 0],
+      [0, 1],
+    ];
+  }
+
+  let Z;
+  if (n % 2 === 0) {
+    Z = fastMatrixExponentiation(D, n / 2, m);
+    return multiply2x2Matrices(Z, Z, m);
+  } else {
+    Z = fastMatrixExponentiation(D, (n - 1) / 2, m);
+    const Y = multiply2x2Matrices(Z, Z, m);
+    return multiply2x2Matrices(Y, D, m);
+  }
+}
+
+function multiply2x2Matrices(A, B, m) {
+  const C11 = (A[0][0] * B[0][0] + A[0][1] * B[1][0]) % m;
+  const C12 = (A[0][0] * B[0][1] + A[0][1] * B[1][1]) % m;
+  const C21 = (A[1][0] * B[0][0] + A[1][1] * B[1][0]) % m;
+  const C22 = (A[1][0] * B[0][1] + A[1][1] * B[1][1]) % m;
+  return [
+    [C11, C12],
+    [C21, C22],
+  ];
+}
+// *************************** END ****************************
+
+// ************************** START ***************************
+// Получаем последнюю цифру суммы чисел фибоначчи.
+// Обрати внимание, что используем формулу Fsum = (Fn+2)-1.
+// Так как нужна только последняя цифра, всегда передаём m=10.
+function fibSum(n, m) {
+  const matrix = [
+    [1, 1],
+    [1, 0],
+  ];
+  const result = fastMatrixExponentiation(matrix, n + 2, m)[0][1];
+  if (n > 0 && result === 0) {
+    return 9;
+  } else {
+    return result - 1;
+  }
+}
+// *************************** END ****************************
+
+// ************************** START ***************************
+// Последняя цифра суммы чисел фибоначчи от Fx1 до Fx2.
+function fibRange(x1, x2) {
+  const period = getPisanoPeriod(10);
+  const a = fibSum((x1 - 1) % period, 10);
+  const b = fibSum(x2 % period, 10) + 10; // Прибавляем 10, чтобы корректно посчитать разницу двух чисел.
+  return Math.abs(b - a) % 10;
+}
+// *************************** END ****************************
